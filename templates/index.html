@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multilingual Voice Control</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .content {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        .voice-section {
+            text-align: center;
+        }
+        .language-selector {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid #4CAF50;
+            font-size: 16px;
+            width: 100%;
+        }
+        .voice-btn {
+            background: linear-gradient(135deg, #FF6B6B, #EE5A24);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px 0;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        .voice-btn.listening {
+            background: linear-gradient(135deg, #FF416C, #FF4B2B);
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .light-card {
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+        }
+        .light-card.on { background: linear-gradient(135deg, #90EE90, #32CD32); }
+        .light-card.off { background: linear-gradient(135deg, #FFB6C1, #FF69B4); }
+        .control-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .btn {
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn.on { background: #4CAF50; color: white; }
+        .btn.off { background: #f44336; color: white; }
+        .btn.all { background: #2196F3; color: white; grid-column: span 2; }
+        .feedback {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        .language-examples {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+        }
+        .example-group { margin: 15px 0; }
+        .example-group h4 { color: #4CAF50; margin-bottom: 10px; }
+        .language-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌍 True Multilingual Voice Control</h1>
+            <p>Speak in Hindi, English, Spanish, and many more languages!</p>
+        </div>
+        
+        <div class="content">
+            <div class="voice-section">
+                <h2>🎤 Voice Control</h2>
+                
+                <div class="language-info">
+                    <strong>🌐 Language Support:</strong>
+                    <div id="languageList">Loading languages...</div>
+                </div>
+                
+                <select id="languageSelect" class="language-selector">
+                    <option value="auto">Auto-detect Language</option>
+                    <option value="hi">Hindi (हिंदी)</option>
+                    <option value="en">English</option>
+                    <option value="es">Spanish (Español)</option>
+                    <option value="fr">French (Français)</option>
+                    <option value="de">German (Deutsch)</option>
+                    <option value="it">Italian (Italiano)</option>
+                    <option value="pt">Portuguese (Português)</option>
+                </select>
+                
+                <button class="voice-btn" id="voiceBtn">
+                    🎤 Click & Speak in Your Language
+                </button>
+                
+                <div id="feedback" class="feedback info">
+                    Ready to listen. Select language or use auto-detect!
+                </div>
+                
+                <div id="result" class="feedback info" style="display:none"></div>
+                
+                <div class="control-buttons">
+                    <button class="btn all" onclick="controlAll('on')">All ON</button>
+                    <button class="btn all" onclick="controlAll('off')">All OFF</button>
+                </div>
+                
+                <div class="status-grid" id="statusGrid"></div>
+            </div>
+            
+            <div class="language-examples">
+                <h2>💡 Hindi Command Examples</h2>
+                
+                <div class="example-group">
+                    <h4>लाइट चालू करें (Turn On Lights)</h4>
+                    <p>"<strong>लाइट एक चालू करो</strong>" - Light 1 on</p>
+                    <p>"<strong>सभी लाइट चालू करो</strong>" - All lights on</p>
+                    <p>"<strong>लाइट दो और तीन चालू करो</strong>" - Light 2 and 3 on</p>
+                </div>
+                
+                <div class="example-group">
+                    <h4>लाइट बंद करें (Turn Off Lights)</h4>
+                    <p>"<strong>लाइट एक बंद करो</strong>" - Light 1 off</p>
+                    <p>"<strong>सभी लाइट बंद करो</strong>" - All lights off</p>
+                    <p>"<strong>लाइट चार बंद करो</strong>" - Light 4 off</p>
+                </div>
+                
+                <div class="example-group">
+                    <h4>Other Languages Also Supported:</h4>
+                    <p>Spanish: "<strong>Encender luz uno</strong>"</p>
+                    <p>French: "<strong>Allumer lumière un</strong>"</p>
+                    <p>German: "<strong>Licht eins einschalten</strong>"</p>
+                    <p>And many more!</p>
+                </div>
+                
+                <div class="example-group">
+                    <h4>💡 Tips for Hindi:</h4>
+                    <p>• Speak clearly and naturally</p>
+                    <p>• Use numbers (एक, दो, तीन, चार) or (1, 2, 3, 4)</p>
+                    <p>• Say "चालू" for ON, "बंद" for OFF</p>
+                    <p>• Say "सभी" for ALL lights</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentLanguage = 'auto';
+        
+        // Initialize status grid
+        function initStatusGrid() {
+            const grid = document.getElementById('statusGrid');
+            grid.innerHTML = '';
+            
+            for(let i = 1; i <= 4; i++) {
+                grid.innerHTML += `
+                    <div class="light-card off" id="light${i}">
+                        <h3>Light ${i}</h3>
+                        <p>GPIO: ${getGPIOMapping(i)}</p>
+                        <div class="control-buttons">
+                            <button class="btn on" onclick="controlLight(${i}, 'on')">ON</button>
+                            <button class="btn off" onclick="controlLight(${i}, 'off')">OFF</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        function getGPIOMapping(lightNum) {
+            const mapping = {1: 'D1', 2: 'D2', 3: 'D3', 4: 'D4'};
+            return mapping[lightNum];
+        }
+        
+        // Load supported languages
+        function loadLanguages() {
+            fetch('/api/languages')
+                .then(r => r.json())
+                .then(languages => {
+                    const langList = document.getElementById('languageList');
+                    langList.innerHTML = Object.values(languages).join(', ');
+                });
+        }
+        
+        // Language selection
+        document.getElementById('languageSelect').addEventListener('change', function(e) {
+            currentLanguage = e.target.value;
+            const feedback = document.getElementById('feedback');
+            if (currentLanguage === 'auto') {
+                feedback.innerHTML = '🌐 Auto-detect mode: Speak any language';
+            } else {
+                const langName = this.options[this.selectedIndex].text;
+                feedback.innerHTML = `🎯 Language set to: ${langName}`;
+            }
+        });
+        
+        // Voice Recognition
+        const voiceBtn = document.getElementById('voiceBtn');
+        const feedback = document.getElementById('feedback');
+        const result = document.getElementById('result');
+        
+        if ('webkitSpeechRecognition' in window) {
+            const recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            
+            voiceBtn.addEventListener('click', () => {
+                // Set recognition language
+                if (currentLanguage !== 'auto') {
+                    recognition.lang = currentLanguage;
+                } else {
+                    recognition.lang = ''; // Auto-detect
+                }
+                
+                recognition.start();
+                voiceBtn.classList.add('listening');
+                feedback.className = 'feedback info';
+                
+                if (currentLanguage === 'auto') {
+                    feedback.innerHTML = '🌐 Listening... Speak in any language!';
+                } else {
+                    const langName = document.getElementById('languageSelect').options[document.getElementById('languageSelect').selectedIndex].text;
+                    feedback.innerHTML = `🎯 Listening... Speak in ${langName}`;
+                }
+                
+                result.style.display = 'none';
+            });
+            
+            recognition.onresult = (event) => {
+                const spokenText = event.results[0][0].transcript;
+                result.style.display = 'block';
+                result.innerHTML = `<strong>You said:</strong> "${spokenText}"`;
+                processVoiceCommand(spokenText);
+            };
+            
+            recognition.onend = () => {
+                voiceBtn.classList.remove('listening');
+            };
+            
+            recognition.onerror = (event) => {
+                feedback.className = 'feedback error';
+                if (event.error === 'not-allowed') {
+                    feedback.innerHTML = '❌ Microphone access denied. Please allow microphone permissions.';
+                } else {
+                    feedback.innerHTML = '❌ Error: ' + event.error;
+                }
+                voiceBtn.classList.remove('listening');
+            };
+        } else {
+            feedback.className = 'feedback error';
+            feedback.innerHTML = '❌ Speech recognition not supported in this browser. Use Chrome or Edge.';
+            voiceBtn.disabled = true;
+        }
+        
+        function processVoiceCommand(command) {
+            feedback.className = 'feedback info';
+            feedback.innerHTML = '🔄 Processing command...';
+            
+            fetch('/api/voice', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({command: command})
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    feedback.className = 'feedback success';
+                    let message = '✅ ' + data.message;
+                    if (data.translated) {
+                        message += `<br><small>Translated: "${data.translated}"</small>`;
+                    }
+                    if (data.language && data.language !== 'en') {
+                        message += `<br><small>Detected: ${data.language}</small>`;
+                    }
+                    feedback.innerHTML = message;
+                    updateStatus();
+                } else {
+                    feedback.className = 'feedback error';
+                    feedback.innerHTML = '❌ ' + data.message;
+                }
+            })
+            .catch(err => {
+                feedback.className = 'feedback error';
+                feedback.innerHTML = '❌ Network error. Check server connection.';
+            });
+        }
+        
+        function controlLight(lightNum, action) {
+            fetch('/api/control', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({light: lightNum, action: action})
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    feedback.className = 'feedback success';
+                    feedback.innerHTML = '✅ ' + data.message;
+                    updateStatus();
+                }
+            });
+        }
+        
+        function controlAll(action) {
+            const endpoint = action === 'on' ? '/api/all-on' : '/api/all-off';
+            fetch(endpoint, {method: 'POST'})
+            .then(r => r.json())
+            .then(data => {
+                feedback.className = 'feedback success';
+                feedback.innerHTML = '✅ ' + data.message;
+                updateStatus();
+            });
+        }
+        
+        function updateStatus() {
+            fetch('/api/status')
+            .then(r => r.json())
+            .then(data => {
+                for(let i = 1; i <= 4; i++) {
+                    const card = document.getElementById('light' + i);
+                    if (data['light' + i]) {
+                        card.className = 'light-card on';
+                    } else {
+                        card.className = 'light-card off';
+                    }
+                }
+            });
+        }
+        
+        // Initialize
+        initStatusGrid();
+        loadLanguages();
+        updateStatus();
+        setInterval(updateStatus, 2000);
+    </script>
+</body>
+</html>
